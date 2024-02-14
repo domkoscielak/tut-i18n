@@ -1,70 +1,118 @@
-# Getting Started with Create React App
+## Wielojęzyczność - Tłumacznia w React z i18n
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### Instalacja
 
-## Available Scripts
+Zainstaluj niezbędne biblioteki:
 
-In the project directory, you can run:
+```bash
+npm install react-i18next i18next --save
+```
 
-### `npm start`
+### Konfiguracja i18next
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Utwórz plik `i18n.js` w swoim projekcie (zazwyczaj w folderze src) i skonfiguruj jak poniżej:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```javascript
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
 
-### `npm test`
+// Importuj pliki z tłumaczeniami
+import translationEN from "./locales/en/translation.json";
+import translationPL from "./locales/pl/translation.json";
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+// Tłumaczenia
+const resources = {
+  en: {
+    translation: translationEN,
+  },
+  pl: {
+    translation: translationPL,
+  },
+};
 
-### `npm run build`
+i18n.use(initReactI18next).init({
+  resources,
+  lng: "en", // domyślny język
+  keySeparator: false, // nie używamy kluczy w formie messages.welcome
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+  interpolation: {
+    escapeValue: false, // React już zabezpiecza przed atakami XSS
+  },
+});
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+export default i18n;
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Pliki z tłumaczeniami
 
-### `npm run eject`
+Utwórz pliki JSON z tłumaczeniami w odpowiedniej strukturze, np. `src/locales/en/translation.json` dla angielskiego i `src/locales/pl/translation.json` dla polskiego. Przykład:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```json
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+// en/translation.json
+{
+  "myPageTitle": "My React App",
+  "myHeader": "Welcome!",
+  "myDescription": "This is a description in English."
+}
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+// pl/translation.json
+{
+  "myPageTitle": "Moja aplikacja React",
+  "myHeader": "Witaj!",
+  "myDescription": "To jest opis po polsku."
+}
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Inicjalizacja i18next
 
-## Learn More
+Zaimportuj plik i18n.js w głównym pliku projektu (np. index.js lub App.js), aby zainicjować i18next:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```javascript
+import "./i18n";
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Użycie tłumaczeń w komponentach
 
-### Code Splitting
+Użyj hooka `useTranslation` w swoich komponentach, aby korzystać z tłumaczeń. Przykład:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```javascript
+import { useTranslation } from "react-i18next";
+import ChangeLanguageButton from "./components/ChangeLangBtn";
 
-### Analyzing the Bundle Size
+function App() {
+  const { t } = useTranslation();
+  return (
+    <div className="App">
+      <h1>{t("myPageTitle")}</h1>
+      <ChangeLanguageButton />
+      <h2>{t("myHeader")}</h2>
+      <p>{t("myDescription")}</p>
+    </div>
+  );
+}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+export default App;
+```
 
-### Making a Progressive Web App
+### Zmiana języka
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Aby umożliwić użytkownikowi zmianę języka, możesz użyć metody `i18n.changeLanguage`. Przykład:
 
-### Advanced Configuration
+```javascript
+import React from "react";
+import { useTranslation } from "react-i18next";
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+function ChangeLanguageButton() {
+  const { i18n } = useTranslation();
 
-### Deployment
+  return (
+    <div>
+      <button onClick={() => i18n.changeLanguage("en")}>English</button>
+      <button onClick={() => i18n.changeLanguage("pl")}>Polski</button>
+    </div>
+  );
+}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+export default ChangeLanguageButton;
+```
